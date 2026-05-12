@@ -32,7 +32,6 @@ nnoremap <S-Tab> :bprev<CR>
 
 inoremap { {}<Left>
 inoremap <expr> } strpart(getline('.'), col('.')-1, 1) == "}" ? "\<Right>" : "}"
-inoremap <expr> <CR> strpart(getline('.'), col('.')-1, 1) == "}" ? "\<Del>\<CR>}\<Esc>ko" : "\<CR>"
 vnoremap { <Esc>`<i{<Esc>`>a<right>}<Esc>
 
 inoremap ( ()<Left>
@@ -48,3 +47,5 @@ vnoremap ' <Esc>`<i'<Esc>`>a<right>'<Esc>
 
 inoremap <expr> " strpart(getline('.'), col('.')-1, 1) == "\"" ? "\<Right>" : "\"\"\<Left>"
 vnoremap " <Esc>`<i"<Esc>`>a<right>"<Esc>
+
+inoremap <expr> <CR> strpart(getline('.'), col('.')-1, 1) == "}" ? "\<Del>\<CR>}\<Esc>ko" : strpart(getline('.'), col('.')-1, 1) == ")" ? "\<Del>\<CR>)\<Esc>ko" : strpart(getline('.'), col('.')-1, 1) == "]" ? "\<Del>\<CR>]\<Esc>ko" : strpart(getline('.'), col('.')-1, 1) == "\'" ? "\<Del>\<CR>\'\<Esc>ko" : strpart(getline('.'), col('.')-1, 1) == "\"" ? "\<Del>\<CR>\"\<Esc>ko" : "\<CR>"
