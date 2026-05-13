@@ -16,8 +16,9 @@ set smartindent
 
 set wildmenu
 
+let g:tex_no_error=1
+
 inoremap jk <Esc>
-" inoremap {<CR> {<CR>}<Esc>ko
 nnoremap <C-s> :w<CR>
 
 nnoremap <Space>m :make<CR>
@@ -30,22 +31,37 @@ nnoremap M :cprev<CR>
 nnoremap <Tab> :bnext<CR>
 nnoremap <S-Tab> :bprev<CR>
 
-inoremap { {}<Left>
-inoremap <expr> } strpart(getline('.'), col('.')-1, 1) == "}" ? "\<Right>" : "}"
-vnoremap { <Esc>`<i{<Esc>`>a<right>}<Esc>
+func s:if_at_cursor(p, a, b)
+    let p = escape(a:p ,"\"")
+    let a = escape(a:a ,"\"")
+    let b = escape(a:b ,"\"")
+    return "strpart(getline('.'), col('.')-1, 1) == \"".p."\" ? \"".a."\" : \"".b."\""
+endfunc
 
-inoremap ( ()<Left>
-inoremap <expr> ) strpart(getline('.'), col('.')-1, 1) == ")" ? "\<Right>" : ")"
-vnoremap ( <Esc>`<i(<Esc>`>a<right>)<Esc>
+func s:create_matching_delimiters(l, r)
+    if a:l == a:r
+        execute  "inoremap"  "<expr>"  a:r  s:if_at_cursor(a:r, "<right>", a:r.a:r."<left>")
+    else
+        execute  "inoremap"  a:l  a:l.a:r."<left>"
+        execute  "inoremap"  "<expr>"  a:r  s:if_at_cursor(a:r, "<right>", a:r)
+    endif
+    execute  "vnoremap"  a:l  "<Esc>`<i".a:l."<Esc>`>a<right>".a:r."<Esc>"
+endfunc
 
-inoremap [ []<Left>
-inoremap <expr> ] strpart(getline('.'), col('.')-1, 1) == "]" ? "\<Right>" : "]"
-vnoremap [ <Esc>`<i[<Esc>`>a<right>]<Esc>
+call s:create_matching_delimiters("{", "}")
+call s:create_matching_delimiters("(", ")")
+call s:create_matching_delimiters("[", "]")
+call s:create_matching_delimiters("'", "'")
+call s:create_matching_delimiters("\"", "\"")
 
-inoremap <expr> ' strpart(getline('.'), col('.')-1, 1) == "\'" ? "\<Right>" : "\'\'\<Left>"
-vnoremap ' <Esc>`<i'<Esc>`>a<right>'<Esc>
+func s:type_or_indent(delimiters)
+    let c = strpart(getline('.'), col('.')-1, 1)
+    for d in a:delimiters
+        if c == d
+            return "\<del>\<cr>".d."\<esc>ko"
+        endif
+    endfor
+    return "\<cr>"
+endfunc
 
-inoremap <expr> " strpart(getline('.'), col('.')-1, 1) == "\"" ? "\<Right>" : "\"\"\<Left>"
-vnoremap " <Esc>`<i"<Esc>`>a<right>"<Esc>
-
-inoremap <expr> <CR> strpart(getline('.'), col('.')-1, 1) == "}" ? "\<Del>\<CR>}\<Esc>ko" : strpart(getline('.'), col('.')-1, 1) == ")" ? "\<Del>\<CR>)\<Esc>ko" : strpart(getline('.'), col('.')-1, 1) == "]" ? "\<Del>\<CR>]\<Esc>ko" : strpart(getline('.'), col('.')-1, 1) == "\'" ? "\<Del>\<CR>\'\<Esc>ko" : strpart(getline('.'), col('.')-1, 1) == "\"" ? "\<Del>\<CR>\"\<Esc>ko" : "\<CR>"
+inoremap <expr> <cr> <sid>type_or_indent(["}", "]", ")"])
